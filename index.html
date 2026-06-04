@@ -11,7 +11,8 @@
         // 🔗 আপনার সুপ্রাবেস প্রজেক্ট লিংক এখানে সেট করা হলো
         const SUPABASE_URL = "https://dmvkwenjlsbkbyvgbxil.supabase.co";
         
-        // 🔑 "sb_publishable_wgBfBbb6WkltJQdNcR2B5A_tzdp5XaS;
+        // 🔑 আপনার সুপ্রাবেস থেকে আনা Anon Key-টি নিচে সেট করা হলো
+        const SUPABASE_KEY = "Sb_publishable_wgBfBbb6WkltJQdNcR2B5A_tzdp5XaS";
         
         // 🚀 সুপ্রাবেস ক্লায়েন্ট তৈরি
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -546,7 +547,7 @@
 
     <div id="withdraw-modal" class="popup-modal">
         <div class="popup-content">
-            <span class="close-popup" onclick="closePopup('withdraw-modal')">&times;</span>
+            <span class="close-popup" onclick="closeModal('withdraw-modal')">&times;</span>
             <h4 style="color: #ef4444; margin-bottom: 6px; font-size: 16px;">Withdraw Request</h4>
             <p style="font-size: 12px; color: #f59e0b; margin-bottom: 12px; font-weight: bold; text-align: center;">
                 ⚠️ সর্বনিম্ন উত্তোলন: ৳১০০ | সর্বোচ্চ উত্তোলন: ৳১০,০০০
@@ -766,5 +767,5 @@
         updateAllBalances();
         checkClaimedTasks();
     </script>
-</body>
+            </body>
 </html>
