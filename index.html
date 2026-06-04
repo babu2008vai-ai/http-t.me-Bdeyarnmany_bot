@@ -7,9 +7,12 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Supabase Configuration
         const SUPABASE_URL = "https://dmvkwenjlsbkbyvgbxil.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_wgBfBbb6WkltJQdNcR2B5A_tzdp5XaS";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_KEY = "sb_publishable_wgBfBbb6WkltJQdNcR2B5A_tzdp5XaS"; 
+        
+        // Correct Initialization using window object to avoid conflicts
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     </script>
 
     <style>
@@ -611,20 +614,21 @@
         document.getElementById('user-id').innerText = userId;
         document.getElementById('refer-link-box').value = "https://t.me/hm_earnbd_bot/earn?startapp=" + userId;
 
+        // Load or Register User Data safely
         async function loadUserData() {
             try {
                 let { data: user, error } = await supabase
                     .from('users')
                     .select('*')
                     .eq('id', userId)
-                    .single();
+                    .maybeSingle(); // Better handle empty responses safely
 
-                if (error && error.code === 'PGRST116') {
+                if (!user) {
                     let { data: newUser, error: insertError } = await supabase
                         .from('users')
                         .insert([{ id: userId, name: userName, balance: 0.00, total_refers: 0, active_refers: 0, referred_by: referrerId }])
                         .select()
-                        .single();
+                        .maybeSingle();
                     
                     if (!insertError && newUser) {
                         userBalance = newUser.balance;
@@ -635,7 +639,7 @@
                             await supabase.rpc('increment_total_refers', { row_id: referrerId });
                         }
                     }
-                } else if (!error && user) {
+                } else {
                     userBalance = parseFloat(user.balance) || 0.00;
                     referCount = parseInt(user.total_refers) || 0;
                     activeReferCount = parseInt(user.active_refers) || 0;
@@ -714,7 +718,7 @@
                         await supabase.rpc('handle_active_referral', { ref_id: referrerId });
                     }
                 }
-                tg.HapticFeedback.notificationOccurred('success');
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             } catch(e) {
                 console.error("টাস্ক সেভ এরর:", e);
             }
@@ -734,6 +738,7 @@
             });
         }
 
+        // Modal triggers
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
@@ -749,9 +754,13 @@
                 alert("দয়া করে টাকার পরিমাণ এবং TrxID সঠিকভাবে বসান!");
                 return;
             }
-            await supabase.from('topups').insert([{ user_id: userId, name: userName, amount: parseFloat(amount), trx_id: trx, status: 'pending' }]);
-            alert("আপনার পেমেন্ট রিকোয়েস্টটি সফলভাবে ডাটাবেজে সাবমিট হয়েছে! এডমিন যাচাই করে ব্যালেন্স অ্যাড করে দেবে।");
-            closeModal('topup-modal');
+            try {
+                await supabase.from('topups').insert([{ user_id: userId, name: userName, amount: parseFloat(amount), trx_id: trx, status: 'pending' }]);
+                alert("আপনার পেমেন্ট রিকোয়েস্টটি সফলভাবে ডাটাবেজে সাবমিট হয়েছে! এডমিন যাচাই করে ব্যালেন্স অ্যাড করে দেবে।");
+                closeModal('topup-modal');
+            } catch(err) {
+                alert("টপ-আপ সাবমিট করতে সমস্যা হয়েছে। ডাটাবেজ টেবিল চেক করুন।");
+            }
         }
 
         function copyReferLink() {
@@ -792,19 +801,24 @@
                 return;
             }
 
-            userBalance -= amount;
-            await supabase.from('users').update({ balance: userBalance }).eq('id', userId);
-            await supabase.from('withdraws').insert([{ user_id: userId, name: userName, method: method, number: num, amount: amount, status: 'pending' }]);
-            
-            updateUI();
-            alert("আপনি সফলভাবে উইড্র করেছেন! আপনার রিকোয়েস্টটি এডমিন প্যানেলে পাঠানো হয়েছে।");
-            document.getElementById('withdraw-number').value = "";
-            document.getElementById('withdraw-amount').value = "";
-            closeModal('withdraw-modal');
-            tg.HapticFeedback.notificationOccurred('success');
+            try {
+                userBalance -= amount;
+                await supabase.from('users').update({ balance: userBalance }).eq('id', userId);
+                await supabase.from('withdraws').insert([{ user_id: userId, name: userName, method: method, number: num, amount: amount, status: 'pending' }]);
+                
+                updateUI();
+                alert("আপনি সফলভাবে উইড্র করেছেন! আপনার রিকোয়েস্টটি এডমিন প্যানেলে পাঠানো হয়েছে।");
+                document.getElementById('withdraw-number').value = "";
+                document.getElementById('withdraw-amount').value = "";
+                closeModal('withdraw-modal');
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } catch(e) {
+                alert("উইথড্র রিকোয়েস্ট ব্যর্থ হয়েছে।");
+            }
         }
 
+        // Initialize App on load
         loadUserData();
     </script>
-    </body>
+</body>
 </html>
