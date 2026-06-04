@@ -8,7 +8,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // 🔗 সুপ্রাবেস প্রজেক্ট লিংক ও Anon Key (বাগ ফিক্সড)
+        // 🔗 সুপ্রাবেস প্রজেক্ট লিংক ও Anon Key ( বাগ ফিক্সড )
         const SUPABASE_URL = "https://dmvkwenjlsbkbyvgbxil.supabase.co";
         const SUPABASE_KEY = "sb_publishable_wgBfBbb6WkltJQdNcR2B5A_tzdp5XaS";
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -614,12 +614,11 @@
         let activeReferCount = 0;
         let referrerId = null;
 
-        // টেলিগ্রাম ইউজার ডাটা রিসিভ করা ও রেফারেল আইডি ট্র্যাকিং
+        // টেলিগ্রাম ডাটা লোড ও ইনপুট হ্যান্ডলিং
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             userId = tg.initDataUnsafe.user.id.toString();
             userName = tg.initDataUnsafe.user.first_name + (tg.initDataUnsafe.user.last_name ? " " + tg.initDataUnsafe.user.last_name : "");
             
-            // যদি ইউজার কারো রেফারেল লিংকে ক্লিক করে আসে
             if (tg.initDataUnsafe.start_param) {
                 referrerId = tg.initDataUnsafe.start_param.toString();
             }
@@ -629,7 +628,7 @@
         document.getElementById('user-id').innerText = userId;
         document.getElementById('refer-link-box').value = "https://t.me/hm_earnbd_bot/earn?startapp=" + userId;
 
-        // 📊 ডাটাবেজ থেকে রিয়েল ইউজার ডাটা লোড বা নতুন অ্যাকাউন্ট তৈরি
+        // 📊 ডাটাবেজ থেকে লাইভ ইউজার হ্যান্ডলার
         async function loadUserData() {
             try {
                 let { data: user, error } = await supabase
@@ -639,7 +638,7 @@
                     .single();
 
                 if (error && error.code === 'PGRST116') {
-                    // ইউজার ডাটাবেজে না থাকলে নতুন অ্যাকাউন্ট তৈরি করা হবে
+                    // নতুন ইউজার ডাটাবেজে ইনসার্ট ও রেফারেল চেক
                     let { data: newUser, error: insertError } = await supabase
                         .from('users')
                         .insert([{ id: userId, name: userName, balance: 0.00, total_refers: 0, active_refers: 0, referred_by: referrerId }])
@@ -650,6 +649,11 @@
                         userBalance = newUser.balance;
                         referCount = newUser.total_refers;
                         activeReferCount = newUser.active_refers;
+
+                        // রেফারার থাকলে তার টোটাল রেফারেল সাথে সাথে বৃদ্ধি
+                        if(referrerId) {
+                            await supabase.rpc('increment_total_refers', { row_id: referrerId });
+                        }
                     }
                 } else if (!error && user) {
                     userBalance = parseFloat(user.balance) || 0.00;
@@ -662,7 +666,7 @@
                 updateUI();
                 checkClaimedTasks();
             } catch (err) {
-                console.error("ডাটাবেজ লোড করতে সমস্যা হয়েছে:", err);
+                console.error("ডাটাবেজ লোড প্রবলেম:", err);
             }
         }
 
@@ -700,27 +704,45 @@
             document.getElementById('header-title').innerText = titles[pageId];
         }
 
-        // 🎯 ডাটাবেজ সমর্থিত আসল টাস্ক মেকানিজম
+        // 🎯 টাস্ক কমপ্লিশন ও রিয়েল-টাইম ব্যালেন্স আপডেট লজিক
         async function runLinkTask(url, buttonId, reward) {
             window.open(url, '_blank');
             let btn = document.getElementById(buttonId);
             
-            setTimeout(async () => {
-                if(localStorage.getItem(userId + '_' + buttonId) === 'claimed') return;
-                
-                userBalance += reward;
-                
-                // ডাটাবেজে ব্যালেন্স আপডেট
+            // ইনস্ট্যান্টলি লোকাল স্টেট ও ডাটাবেজ আপডেট নিশ্চিত করা
+            if(localStorage.getItem(userId + '_' + buttonId) === 'claimed') return;
+            
+            userBalance += reward;
+            updateUI();
+            
+            btn.innerText = "Claimed";
+            btn.style.background = "#1e293b";
+            btn.style.color = "#64748b";
+            btn.disabled = true;
+            localStorage.setItem(userId + '_' + buttonId, 'claimed');
+
+            try {
+                // ডাটাবেজে ব্যালেন্স যোগ
                 await supabase.from('users').update({ balance: userBalance }).eq('id', userId);
-                updateUI();
                 
-                btn.innerText = "Claimed";
-                btn.style.background = "#1e293b";
-                btn.style.color = "#64748b";
-                btn.disabled = true;
-                localStorage.setItem(userId + '_' + buttonId, 'claimed');
+                // ৩টি বা তার বেশি টাস্ক কমপ্লিট হলে রেফারারকে বোনাস প্রদান লজিক
+                let claimedCount = 0;
+                ['task1-btn', 'task2-btn', 'task3-btn', 'task4-btn'].forEach(id => {
+                    if(localStorage.getItem(userId + '_' + id) === 'claimed') claimedCount++;
+                });
+
+                if(claimedCount >= 2 && referrerId) {
+                    let hasTriggered = localStorage.getItem(userId + '_refer_triggered');
+                    if(!hasTriggered) {
+                        localStorage.setItem(userId + '_refer_triggered', 'yes');
+                        // ডাটাবেজের মাধ্যমে রেফারারকে টাকা এবং অ্যাক্টিভ কাউন্ট দেওয়া
+                        await supabase.rpc('handle_active_referral', { ref_id: referrerId });
+                    }
+                }
                 tg.HapticFeedback.notificationOccurred('success');
-            }, 5000);
+            } catch(e) {
+                console.error("টাস্ক সেভ এরর:", e);
+            }
         }
 
         function checkClaimedTasks() {
@@ -745,7 +767,6 @@
             document.getElementById('topup-amount').value = amount;
         }
 
-        // 💰 আসল টপআপ রিকোয়েস্ট ডাটাবেজে পাঠানো
         async function submitTopUp() {
             let amount = document.getElementById('topup-amount').value;
             let trx = document.getElementById('topup-trxid').value;
@@ -753,11 +774,8 @@
                 alert("দয়া করে টাকার পরিমাণ এবং TrxID সঠিকভাবে বসান!");
                 return;
             }
-            
-            // topups টেবিলে রিকোয়েস্ট ইনসার্ট করা
             await supabase.from('topups').insert([{ user_id: userId, name: userName, amount: parseFloat(amount), trx_id: trx, status: 'pending' }]);
-            
-            alert("আপনার পেমেন্ট রিকোয়েস্টটি সফলভাবে ডাটাবেজে সাবমিট হয়েছে! এডমিন যাচাই করে ২৪ ঘণ্টার মধ্যে ব্যালেন্স অ্যাড করে দেবে।");
+            alert("আপনার পেমেন্ট রিকোয়েস্টটি সফলভাবে ডাটাবেজে সাবমিট হয়েছে! এডমিন যাচাই করে ব্যালেন্স অ্যাড করে দেবে।");
             closeModal('topup-modal');
         }
 
@@ -777,7 +795,6 @@
             }
         }
 
-        // 💳 আসল উইড্র রিকোয়েস্ট ডাটাবেজে পাঠানো
         async function submitWithdraw() {
             let method = document.getElementById('withdraw-method').value;
             let num = document.getElementById('withdraw-number').value;
@@ -801,8 +818,6 @@
             }
 
             userBalance -= amount;
-            
-            // ডাটাবেজে ব্যালেন্স আপডেট এবং withdraws টেবিলে ডাটা পাঠানো
             await supabase.from('users').update({ balance: userBalance }).eq('id', userId);
             await supabase.from('withdraws').insert([{ user_id: userId, name: userName, method: method, number: num, amount: amount, status: 'pending' }]);
             
@@ -814,7 +829,6 @@
             tg.HapticFeedback.notificationOccurred('success');
         }
 
-        // অ্যাপ ওপেন হওয়ার সাথে সাথে ডাটাবেজ কল হবে
         loadUserData();
     </script>
 </body>
