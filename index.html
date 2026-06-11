@@ -26,16 +26,19 @@ body{
     text-align:center;
 }
 
-/* TITLE ANIMATION */
+/* ANIMATED TITLE */
 .title{
-    font-size:20px;
-    color:#00ff88;
-    animation:glow 2s infinite alternate;
+    font-size:18px;
+    font-weight:bold;
+    background:linear-gradient(90deg,#00ff88,#2196f3,#ff9800,#e91e63);
+    -webkit-background-clip:text;
+    color:transparent;
+    animation:move 3s infinite linear;
 }
 
-@keyframes glow{
-    from{text-shadow:0 0 5px #00ff88;}
-    to{text-shadow:0 0 20px #00ff88;}
+@keyframes move{
+    0%{filter:hue-rotate(0deg);}
+    100%{filter:hue-rotate(360deg);}
 }
 
 /* LOGIN */
@@ -43,8 +46,8 @@ input{
     width:100%;
     padding:10px;
     margin-top:10px;
-    border-radius:6px;
     border:none;
+    border-radius:6px;
 }
 
 button{
@@ -100,12 +103,10 @@ button{
     border-radius:8px;
     font-size:13px;
 }
-
-/* COLORS */
 .win{color:#00ff88;}
 .jackpot{color:#ff9800;}
 
-/* FLOAT BUTTONS (always visible after login) */
+/* FLOAT BUTTONS (ALWAYS FIXED) */
 .float-left,.float-right{
     position:fixed;
     bottom:20px;
@@ -114,8 +115,8 @@ button{
     cursor:pointer;
     color:white;
     font-size:13px;
-    display:none;
     z-index:999;
+    display:none;
 }
 
 .float-left{left:20px;background:#9c27b0;}
@@ -134,18 +135,18 @@ button{
     display:none;
     color:white;
     z-index:1000;
-    animation:pop .3s;
+    animation:pop .3s ease;
 }
 
 @keyframes pop{
-    from{transform:translate(-50%,-50%) scale(.7);opacity:0}
+    from{transform:translate(-50%,-50%) scale(.6);opacity:0}
     to{transform:translate(-50%,-50%) scale(1);opacity:1}
 }
 
 .close{
+    width:100%;
     background:red;
     color:white;
-    width:100%;
     margin-top:10px;
 }
 </style>
@@ -184,21 +185,19 @@ button{
 </div>
 
 <!-- FLOAT BUTTONS -->
-<div class="float-left" id="aiBtn" onclick="openAI()">AI PANEL</div>
-<div class="float-right" id="webBtn" onclick="openSite()">OPEN WEBSITE</div>
+<div class="float-left" id="aiBtn" onclick="openAI()">AI BUTTON</div>
+<div class="float-right" id="webBtn" onclick="openSite()">WEBSITE</div>
 
 <!-- AI PANEL -->
 <div class="ai" id="aiPanel">
-    <h3 style="color:#00ff88;">AI SYSTEM</h3>
-    <p>Engine Running...</p>
+    <h3 style="color:#00ff88;">AI SYSTEM PANEL</h3>
+    <p>Running System Active...</p>
     <button class="close" onclick="closeAI()">CLOSE</button>
 </div>
 
 <script>
 
 let time=30;
-let locked=true;
-
 let history=document.getElementById("history");
 
 /* LOGIN */
@@ -231,14 +230,12 @@ function closeAI(){
     document.getElementById("aiPanel").style.display="none";
 }
 
-/* TIMER + UPDATE */
+/* TIMER */
 function timer(){
-
     time--;
 
     if(time<=0){
         time=30;
-        locked=false;
         update();
     }
 
