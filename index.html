@@ -13,73 +13,105 @@
 }
 
 body{
-    font-family:Arial, sans-serif;
-    background:url('https://cloudinary-marketing-res.cloudinary.com/image/upload/ar_0.5,c_fill,g_auto,w_433/q_auto/f_auto/hiking_dog_mountain.jpg') center center/cover no-repeat;
+    font-family:Arial;
+    background:url('https://cloudinary-marketing-res.cloudinary.com/image/upload/ar_0.5,c_fill,g_auto,w_433/q_auto/f_auto/hiking_dog_mountain.jpg') center/cover no-repeat;
     min-height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
 }
 
+/* MAIN BOX */
 .box{
-    width:350px;
-    background:rgba(0,0,0,0.8);
-    padding:25px;
+    width:340px;
+    background:rgba(0,0,0,0.85);
+    padding:20px;
     border-radius:15px;
-    text-align:center;
     color:white;
+    text-align:center;
 }
 
+/* TITLE */
 h1{
     color:#00ff88;
-    margin-bottom:20px;
-    font-size:24px;
+    font-size:20px;
 }
 
+/* INPUT */
 input{
     width:100%;
-    padding:12px;
+    padding:10px;
+    margin-top:10px;
+    border-radius:6px;
     border:none;
-    border-radius:8px;
-    margin-bottom:15px;
 }
 
+/* BUTTON */
 button{
     width:100%;
-    padding:12px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:16px;
+    padding:10px;
     margin-top:10px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
 }
 
+/* LOGIN */
 .login-btn{
     background:#00c853;
     color:white;
 }
 
-.link-btn{
-    background:#2196f3;
-    color:white;
-}
-
+/* ERROR */
 #error{
-    color:#ff5252;
-    margin-top:10px;
+    color:red;
+    margin-top:5px;
 }
 
-#dashboard{
-    display:none;
-}
+/* DASHBOARD */
+#dashboard{display:none}
 
+/* RANDOM */
 .random-box{
-    margin:20px 0;
-    padding:15px;
+    margin-top:10px;
+    font-size:28px;
     border:1px solid #00ff88;
+    padding:10px;
     border-radius:10px;
-    font-size:32px;
-    font-weight:bold;
+}
+
+/* TIMER */
+.timer{
+    margin-top:8px;
+    color:yellow;
+}
+
+/* FLOAT BUTTON BOX */
+.float-box{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    width:150px;
+    background:#2196f3;
+    padding:10px;
+    border-radius:10px;
+    cursor:move;
+    text-align:center;
+    color:white;
+    font-size:14px;
+    user-select:none;
+}
+
+/* HISTORY PANEL */
+.history{
+    margin-top:10px;
+    max-height:120px;
+    overflow:auto;
+    background:#111;
+    padding:8px;
+    border-radius:8px;
+    text-align:left;
+    font-size:12px;
 }
 </style>
 </head>
@@ -88,83 +120,126 @@ button{
 
 <div class="box">
 
+<!-- LOGIN -->
 <div id="loginPage">
     <h1>MEHEDI VAI AI SYSTEM</h1>
 
-    <input
-        type="password"
-        id="password"
-        placeholder="Enter Password"
-    >
+    <input type="password" id="password" placeholder="Enter Password">
 
-    <button class="login-btn" onclick="login()">
-        LOGIN
-    </button>
+    <button class="login-btn" onclick="login()">LOGIN</button>
 
     <div id="error"></div>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard">
+
     <h1>MEHEDI VAI AI SYSTEM</h1>
+
+    <div class="timer">
+        Timer: <span id="countdown">30</span>s
+    </div>
 
     <div class="random-box" id="numbers">
         0 / 0
     </div>
 
-    <button
-        class="link-btn"
-        onclick="openSite()">
-        OPEN WEBSITE
-    </button>
+    <div class="history" id="history">
+        History:
+    </div>
+
 </div>
 
+</div>
+
+<!-- FLOATING BUTTON -->
+<div class="float-box" id="floatBtn" onclick="openSite()">
+    OPEN WEBSITE
 </div>
 
 <script>
 
+let countdown = 30;
+let historyBox = document.getElementById("history");
+
+/* LOGIN */
 function login(){
 
-    let pass =
-    document.getElementById("password").value;
+    let pass = document.getElementById("password").value;
 
-    if(pass==="mehedi11"){
-
+    if(pass === "mehedi11"){
         document.getElementById("loginPage").style.display="none";
         document.getElementById("dashboard").style.display="block";
 
-        startRandom();
+        startAll();
 
-    }else{
-
-        document.getElementById("error").innerHTML =
-        "Wrong Password!";
+    } else {
+        document.getElementById("error").innerText="Wrong Password!";
     }
 }
 
+/* OPEN SITE */
 function openSite(){
-
-window.open(
-'https://hgnice.bet/#/register?invitationCode=531211974484',
-'_blank'
-);
-
+    window.open('https://hgnice.bet/#/register?invitationCode=531211974484','_blank');
 }
 
-function startRandom(){
-
-    setInterval(function(){
-
-        let n1=Math.floor(Math.random()*10);
-        let n2=Math.floor(Math.random()*10);
-
-        document.getElementById("numbers").innerHTML=
-        n1+" / "+n2;
-
-    },2000);
-
+/* START ALL SYSTEM */
+function startAll(){
+    setInterval(randomGen,2000);
+    setInterval(timer,1000);
 }
+
+/* RANDOM BIG/SMALL */
+function randomGen(){
+
+    let n1 = Math.floor(Math.random()*10);
+    let n2 = Math.floor(Math.random()*10);
+
+    let result = n1 + " / " + n2;
+
+    document.getElementById("numbers").innerText = result;
+
+    let div = document.createElement("div");
+    div.innerText = result;
+    historyBox.appendChild(div);
+}
+
+/* TIMER */
+function timer(){
+
+    countdown--;
+
+    if(countdown < 0){
+        countdown = 30;
+    }
+
+    document.getElementById("countdown").innerText = countdown;
+}
+
+/* DRAG FLOAT BUTTON */
+let floatBtn = document.getElementById("floatBtn");
+
+let isDragging = false;
+
+floatBtn.addEventListener("mousedown", function(){
+    isDragging = true;
+});
+
+document.addEventListener("mousemove", function(e){
+    if(isDragging){
+        floatBtn.style.left = e.pageX + "px";
+        floatBtn.style.top = e.pageY + "px";
+        floatBtn.style.right = "auto";
+        floatBtn.style.bottom = "auto";
+        floatBtn.style.position = "absolute";
+    }
+});
+
+document.addEventListener("mouseup", function(){
+    isDragging = false;
+});
 
 </script>
 
 </body>
-    </html>
+</html>
