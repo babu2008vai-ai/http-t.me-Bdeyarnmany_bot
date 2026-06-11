@@ -54,13 +54,16 @@ button{
 /* DASHBOARD */
 #dashboard{display:none}
 
-/* TOP BIG SMALL */
+/* BIG SMALL */
 .bs{
-    font-size:28px;
+    font-size:30px;
     font-weight:bold;
     margin-top:10px;
-    color:#00ff88;
 }
+
+/* COLORS */
+.big{color:#00ff88;}
+.small{color:#ff5252;}
 
 /* NUMBER */
 .num{
@@ -89,6 +92,9 @@ button{
     font-size:13px;
 }
 
+.win{color:#00ff88;}
+.jackpot{color:#ff9800;}
+
 /* FLOAT BUTTON */
 .float{
     position:fixed;
@@ -98,7 +104,7 @@ button{
     color:white;
     padding:10px;
     border-radius:10px;
-    cursor:move;
+    cursor:pointer;
     user-select:none;
 }
 </style>
@@ -126,13 +132,10 @@ button{
         TIMER: <span id="time">30</span>s
     </div>
 
-    <!-- BIG SMALL TOP -->
-    <div class="bs" id="bs">B</div>
+    <div class="bs" id="bs">BIG</div>
 
-    <!-- NUMBER -->
     <div class="num" id="num">0</div>
 
-    <!-- HISTORY -->
     <div class="history" id="history"></div>
 
 </div>
@@ -140,7 +143,7 @@ button{
 </div>
 
 <!-- FLOAT BUTTON -->
-<div class="float" id="floatBtn" onclick="openSite()">
+<div class="float" onclick="openSite()">
 OPEN WEBSITE
 </div>
 
@@ -171,10 +174,9 @@ function openSite(){
     window.open('https://hgnice.bet/#/register?invitationCode=531211974484','_blank');
 }
 
-/* SYSTEM */
+/* SYSTEM START */
 function startSystem(){
     setInterval(timer,1000);
-    setInterval(generator,2000);
 }
 
 /* TIMER */
@@ -185,52 +187,39 @@ function timer(){
     if(time<=0){
         time=30;
         locked=false;
+
+        updateAll(); // ONLY UPDATE AFTER 30s
     }
 
     document.getElementById("time").innerText=time;
 }
 
-/* RANDOM ENGINE */
-function generator(){
+/* UPDATE SYSTEM */
+function updateAll(){
 
     let num = Math.floor(Math.random()*10);
 
-    let bs;
+    let bs = num >= 5 ? "BIG" : "SMALL";
 
-    if(locked){
-        bs = "B"; // stable mode
-    }else{
-        bs = num >= 5 ? "B" : "S";
-    }
+    let bsEl = document.getElementById("bs");
+    let numEl = document.getElementById("num");
 
-    document.getElementById("bs").innerText = bs;
-    document.getElementById("num").innerText = num;
+    bsEl.innerText = bs;
+    numEl.innerText = num;
 
-    // HISTORY ONLY WIN / JACKPOT
+    bsEl.className = "bs " + (bs==="BIG" ? "big" : "small");
+
+    // HISTORY UPDATE ONLY HERE
     let result = Math.random() > 0.5 ? "WIN" : "JACKPOT";
 
     let div = document.createElement("div");
     div.innerText = result;
+    div.className = result==="WIN" ? "win" : "jackpot";
 
     history.prepend(div);
 }
 
-/* DRAG FLOAT */
-let f = document.getElementById("floatBtn");
-let drag=false;
-
-f.addEventListener("mousedown",()=>drag=true);
-document.addEventListener("mouseup",()=>drag=false);
-
-document.addEventListener("mousemove",(e)=>{
-    if(drag){
-        f.style.left=e.pageX+"px";
-        f.style.top=e.pageY+"px";
-        f.style.position="absolute";
-    }
-});
-
 </script>
 
 </body>
-</html>
+    </html>
