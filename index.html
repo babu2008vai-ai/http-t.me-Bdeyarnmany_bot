@@ -16,14 +16,15 @@ body{
     align-items:center;
 }
 
-/* BOX */
+/* MAIN BOX */
 .box{
-    width:340px;
+    width:350px;
     background:rgba(0,0,0,0.85);
     padding:20px;
     border-radius:15px;
     color:white;
     text-align:center;
+    position:relative;
 }
 
 /* LOGIN */
@@ -36,15 +37,16 @@ input{
 }
 
 button{
-    width:100%;
     padding:10px;
-    margin-top:10px;
     border:none;
     border-radius:6px;
     cursor:pointer;
 }
 
+/* LOGIN BTN */
 .login-btn{
+    width:100%;
+    margin-top:10px;
     background:#00c853;
     color:white;
 }
@@ -56,18 +58,16 @@ button{
 
 /* BIG SMALL */
 .bs{
-    font-size:30px;
+    font-size:28px;
     font-weight:bold;
     margin-top:10px;
 }
-
-/* COLORS */
 .big{color:#00ff88;}
 .small{color:#ff5252;}
 
 /* NUMBER */
 .num{
-    font-size:22px;
+    font-size:20px;
     margin-top:8px;
     padding:10px;
     border:1px solid #00ff88;
@@ -88,24 +88,52 @@ button{
     background:#111;
     padding:8px;
     border-radius:8px;
-    text-align:left;
     font-size:13px;
 }
 
-.win{color:#00ff88;}
-.jackpot{color:#ff9800;}
-
-/* FLOAT BUTTON */
-.float{
+/* FLOAT BUTTONS */
+.float-right, .float-left{
     position:fixed;
     bottom:20px;
-    right:20px;
-    background:#2196f3;
-    color:white;
     padding:10px;
     border-radius:10px;
     cursor:pointer;
-    user-select:none;
+    color:white;
+    font-size:13px;
+}
+
+.float-right{
+    right:20px;
+    background:#2196f3;
+}
+
+.float-left{
+    left:20px;
+    background:#9c27b0;
+}
+
+/* AI PANEL */
+.ai-panel{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:320px;
+    background:rgba(0,0,0,0.95);
+    border:1px solid #00ff88;
+    border-radius:12px;
+    padding:15px;
+    display:none;
+    color:white;
+    z-index:999;
+}
+
+/* CLOSE BTN */
+.close{
+    background:red;
+    color:white;
+    margin-top:10px;
+    width:100%;
 }
 </style>
 </head>
@@ -114,9 +142,8 @@ button{
 
 <div class="box">
 
-<!-- LOGIN -->
 <div id="loginPage">
-    <h1 style="color:#00ff88;">MEHEDI VAI AI SYSTEM</h1>
+    <h2 style="color:#00ff88;">MEHEDI VAI AI SYSTEM</h2>
 
     <input type="password" id="password" placeholder="Enter Password">
 
@@ -125,7 +152,6 @@ button{
     <div id="error"></div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard">
 
     <div class="timer">
@@ -142,9 +168,23 @@ button{
 
 </div>
 
-<!-- FLOAT BUTTON -->
-<div class="float" onclick="openSite()">
+<!-- FLOAT BUTTONS -->
+<div class="float-left" onclick="openAI()">
+AI PANEL
+</div>
+
+<div class="float-right" onclick="openSite()">
 OPEN WEBSITE
+</div>
+
+<!-- AI PANEL -->
+<div class="ai-panel" id="aiPanel">
+    <h3 style="color:#00ff88;">AI SYSTEM PANEL</h3>
+    <p>STATUS: RUNNING</p>
+    <p>BIG/SMALL ENGINE ACTIVE</p>
+    <p>RANDOM CORE: ONLINE</p>
+
+    <button class="close" onclick="closeAI()">CLOSE</button>
 </div>
 
 <script>
@@ -156,14 +196,12 @@ let history = document.getElementById("history");
 
 /* LOGIN */
 function login(){
-
-    let pass = document.getElementById("password").value;
+    let pass=document.getElementById("password").value;
 
     if(pass==="mehedi11"){
         document.getElementById("loginPage").style.display="none";
         document.getElementById("dashboard").style.display="block";
-
-        startSystem();
+        start();
     }else{
         document.getElementById("error").innerText="Wrong Password!";
     }
@@ -174,52 +212,55 @@ function openSite(){
     window.open('https://hgnice.bet/#/register?invitationCode=531211974484','_blank');
 }
 
+/* AI PANEL */
+function openAI(){
+    document.getElementById("aiPanel").style.display="block";
+}
+
+function closeAI(){
+    document.getElementById("aiPanel").style.display="none";
+}
+
 /* SYSTEM START */
-function startSystem(){
+function start(){
     setInterval(timer,1000);
 }
 
 /* TIMER */
 function timer(){
-
     time--;
 
     if(time<=0){
         time=30;
         locked=false;
-
-        updateAll(); // ONLY UPDATE AFTER 30s
+        update();
     }
 
     document.getElementById("time").innerText=time;
 }
 
-/* UPDATE SYSTEM */
-function updateAll(){
+/* UPDATE ENGINE */
+function update(){
 
-    let num = Math.floor(Math.random()*10);
+    let num=Math.floor(Math.random()*10);
+    let bs=num>=5?"BIG":"SMALL";
 
-    let bs = num >= 5 ? "BIG" : "SMALL";
+    let bsEl=document.getElementById("bs");
+    let numEl=document.getElementById("num");
 
-    let bsEl = document.getElementById("bs");
-    let numEl = document.getElementById("num");
+    bsEl.innerText=bs;
+    numEl.innerText=num;
 
-    bsEl.innerText = bs;
-    numEl.innerText = num;
+    bsEl.className="bs "+(bs==="BIG"?"big":"small");
 
-    bsEl.className = "bs " + (bs==="BIG" ? "big" : "small");
+    let result=Math.random()>0.5?"WIN":"JACKPOT";
 
-    // HISTORY UPDATE ONLY HERE
-    let result = Math.random() > 0.5 ? "WIN" : "JACKPOT";
-
-    let div = document.createElement("div");
-    div.innerText = result;
-    div.className = result==="WIN" ? "win" : "jackpot";
-
+    let div=document.createElement("div");
+    div.innerText=result;
     history.prepend(div);
 }
 
 </script>
 
 </body>
-    </html>
+</html>
